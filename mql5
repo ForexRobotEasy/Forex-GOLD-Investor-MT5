@@ -1,0 +1,130 @@
+
+// Forex GOLD Investor MT5
+// Developer's site: forexroboteasy.com
+// Development by: Forex Robot Easy Team
+
+// Include necessary libraries
+#include <Trade\Trade.mqh>
+
+// Define constants
+#define MAX_TRADES 2
+#define SCALPING_SYSTEM_THRESHOLD 0.01
+
+// Define global variables
+CTrade trade;
+int tradeCount = 0;
+bool isFourDigitQuotes;
+
+// Check if broker offers four or five-digit quotes
+void CheckBrokerQuotes()
+{
+    isFourDigitQuotes = MarketInfo('XAUUSD', MODE_DIGITS) == 2;
+}
+
+// Perform scalping trading strategy
+void ScalpingTradingStrategy()
+{
+    double currentPrice = MarketInfo('XAUUSD', MODE_BID);
+    
+    if (currentPrice > SCALPING_SYSTEM_THRESHOLD)
+    {
+        // Open buy trade
+        trade.Buy(0.1, 'XAUUSD', currentPrice, 0, 0, 0);
+        tradeCount++;
+    }
+    else if (currentPrice < -SCALPING_SYSTEM_THRESHOLD)
+    {
+        // Open sell trade
+        trade.Sell(0.1, 'XAUUSD', currentPrice, 0, 0, 0);
+        tradeCount++;
+    }
+}
+
+// Perform time-based dependency trading
+void TimeBasedDependencyTrading()
+{
+    datetime currentTime = TimeLocal();
+    
+    if (tradeCount < MAX_TRADES && Hour(currentTime) >= 8 && Hour(currentTime) <= 16)
+    {
+        // Open buy trade
+        trade.Buy(0.1, 'XAUUSD', MarketInfo('XAUUSD', MODE_BID), 0, 0, 0);
+        tradeCount++;
+    }
+}
+
+// Perform intelligent money management
+void MoneyManagement()
+{
+    double accountBalance = AccountBalance();
+    double tradeVolume = 0.1;
+    
+    if (accountBalance <= 1000)
+    {
+        tradeVolume = 0.05;
+    }
+    else if (accountBalance <= 5000)
+    {
+        tradeVolume = 0.1;
+    }
+    else if (accountBalance <= 10000)
+    {
+        tradeVolume = 0.2;
+    }
+    
+    // Set trade volume
+    trade.SetVolume(tradeVolume);
+}
+
+// Perform precise entry and exit trading
+void PreciseEntryAndExitTrading()
+{
+    double currentPrice = MarketInfo('XAUUSD', MODE_BID);
+    
+    // Determine entry and exit points based on market conditions
+    if (currentPrice > SCALPING_SYSTEM_THRESHOLD)
+    {
+        // Open buy trade
+        trade.Buy(0.1, 'XAUUSD', currentPrice, 0, 0, 0);
+        tradeCount++;
+        
+        // Set stop loss and take profit levels
+        trade.SetStopLoss(currentPrice - 0.005);
+        trade.SetTakeProfit(currentPrice + 0.01);
+    }
+    else if (currentPrice < -SCALPING_SYSTEM_THRESHOLD)
+    {
+        // Open sell trade
+        trade.Sell(0.1, 'XAUUSD', currentPrice, 0, 0, 0);
+        tradeCount++;
+        
+        // Set stop loss and take profit levels
+        trade.SetStopLoss(currentPrice + 0.005);
+        trade.SetTakeProfit(currentPrice - 0.01);
+    }
+}
+
+// Perform drawdown protection
+void DrawdownProtection()
+{
+    double accountEquity = AccountEquity();
+    double accountBalance = AccountBalance();
+    
+    if ((accountBalance - accountEquity) / accountBalance > 0.1)
+    {
+        // Close all trades
+        trade.CloseAll();
+        tradeCount = 0;
+    }
+}
+
+// Entry point
+void OnTick()
+{
+    CheckBrokerQuotes();
+    MoneyManagement();
+    ScalpingTradingStrategy();
+    TimeBasedDependencyTrading();
+    PreciseEntryAndExitTrading();
+    DrawdownProtection();
+}
